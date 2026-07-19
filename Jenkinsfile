@@ -23,6 +23,12 @@ pipeline {
             }
         }
 
+        stage('Setup EKS Access') {
+            steps {
+                setupEksAccess()
+            }
+        }
+
         stage('Deploy') {
             steps {
                 deployK8s(
