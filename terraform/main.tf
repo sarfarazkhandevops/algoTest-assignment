@@ -33,10 +33,10 @@ module "vpc" {
 module "eks" {
   source = "./modules/eks"
 
-  cluster_name         = var.cluster_name
-  kubernetes_version   = var.kubernetes_version
-  vpc_id               = module.vpc.vpc_id
-  private_subnet_ids   = module.vpc.private_subnets
+  cluster_name          = var.cluster_name
+  kubernetes_version    = var.kubernetes_version
+  vpc_id                = module.vpc.vpc_id
+  private_subnet_ids    = module.vpc.private_subnets
   control_plane_subnets = module.vpc.private_subnets
 
   tags = var.tags
