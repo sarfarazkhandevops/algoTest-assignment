@@ -3,20 +3,35 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_REGION  = "ap-south-1"
+        ACCOUNT_ID  = "123456789012"
+        REPOSITORY  = "flask-app"
+        CLUSTER_NAME = "eks-auto-cluster"
+        IMAGE = "flask-app"
+    }
+
     stages {
-        stage('Build') {
+
+        stage('Checkout') {
             steps {
-                dockerBuild("flask-app")
+                checkout scm
             }
         }
 
-        stage('Push') {
+        stage('Build Image') {
+            steps {
+                dockerBuild(IMAGE)
+            }
+        }
+
+        stage('Push to ECR') {
             steps {
                 dockerPush(
-                    "flask-app",
-                    "ap-south-1",
-                    "123456789012",
-                    "flask-app"
+                    IMAGE,
+                    AWS_REGION,
+                    ACCOUNT_ID,
+                    REPOSITORY
                 )
             }
         }
@@ -24,14 +39,30 @@ pipeline {
         stage('Deploy') {
             steps {
                 deployK8s(
-                    "eks-auto-cluster",
-                    "ap-south-1",
+                    CLUSTER_NAME,
+                    AWS_REGION,
                     "k8s/deployment.yaml",
                     "k8s/service.yaml",
-                    "123456789012",
-                    "flask-app"
+                    ACCOUNT_ID,
+                    REPOSITORY
                 )
             }
+        }
+
+        stage('Verify') {
+            steps {
+                verifyDeployment("flask-service")
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+
+        failure {
+            echo 'Deployment Failed!'
         }
     }
 }
